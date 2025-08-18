@@ -1,110 +1,147 @@
-# Clinic Management System
+# 🏥 Clinic Management System
 
-A comprehensive clinic management system built with React.js frontend and PHP backend using SQLite database. This system allows doctors to manage patient records, record visits with diagnosis, medicines, lab tests, X-ray reports, and generates AI-powered visit summaries.
+A comprehensive clinic management system built with **React.js** and **Node.js**, featuring patient management, appointment scheduling, visit recording with AI-powered summaries, and voice recording capabilities.
 
-## Features
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+[![Node.js](https://img.shields.io/badge/Node.js-18.0%2B-brightgreen)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-18.2.0-blue)](https://reactjs.org/)
+[![SQLite](https://img.shields.io/badge/SQLite-3.0-lightgrey)](https://www.sqlite.org/)
 
-### 🏥 Patient Management
-- Register new patients with complete personal and medical information
-- View patient list with search functionality
-- Patient profiles with complete medical history
-- Emergency contact information
+## 🚀 Features
 
-### 🩺 Visit Management
-- Record patient visits with detailed information
-- Capture vital signs (temperature, blood pressure, heart rate, etc.)
-- Diagnosis and problem identification
-- Treatment plan documentation
+### 👥 Patient Management
+- Complete patient registration and profile management
+- Patient search and filtering capabilities
+- Comprehensive medical history tracking
+- Emergency contact information management
+- Edit and update patient information with validation
 
-### 💊 Medicine Prescription
-- Prescribe multiple medicines per visit
-- Dosage, frequency, and duration tracking
-- Special instructions for medications
+### 📅 Advanced Appointment System
+- **Smart scheduling** with time slot management (8 AM - 5:30 PM)
+- **Today's appointments view** with real-time status updates
+- **Appointment status tracking**: Scheduled → Confirmed → Completed → Cancelled
+- **Conflict detection** to prevent double-booking
+- **Multiple appointment types**: Consultation, Follow-up, Checkup, Vaccination, Emergency, etc.
+- Edit, cancel, and reschedule appointments
+- Appointment filtering and search functionality
 
-### 🧪 Lab Tests & Imaging
-- Order various lab tests (blood, urine, etc.)
-- Schedule imaging tests (X-ray, CT, MRI, Ultrasound)
-- Track test status and results
-- Body part specification for imaging
+### 🏥 Comprehensive Visit Management
+- **Detailed visit forms** with diagnosis and treatment plans
+- **Vital signs recording** (temperature, blood pressure, heart rate, SpO2, etc.)
+- **Medicine prescription tracking** with dosage and frequency
+- **Lab test orders** (Blood, Urine, Stool, Culture tests)
+- **Imaging test requests** (X-ray, CT, MRI, Ultrasound) with body part specification
+- **Voice recording capabilities** (up to 10MB, auto-stop at 5 minutes)
+- **AI-powered visit summaries** with clinical interpretation
 
-### 🤖 AI-Powered Summaries
-- Automatic generation of visit summaries
-- Previous visit context for doctors
-- Treatment recommendations
-- Follow-up suggestions
+### 🤖 AI-Powered Medical Intelligence
+- **Automatic visit summary generation** with clinical context
+- **Previous visit correlation** for comprehensive patient care
+- **Treatment recommendation system**
+- **Voice recording analysis** integration
+- **Medical history interpretation**
+- **Follow-up suggestions** based on patient data
 
-### 🔐 Authentication
-- Secure admin login system
-- Session management
-- Protected routes
+### 🎙️ Voice Recording Integration
+- **High-quality voice recording** during consultations
+- **Automatic file size management** with quality optimization
+- **Cross-browser support** using MediaRecorder API
+- **Voice analysis integration** with AI summaries
+- **Secure voice file storage** and playback
 
-## Technology Stack
+### 🔐 Robust Authentication & Security
+- **Secure login system** with bcrypt password hashing
+- **Session-based authentication** with automatic logout
+- **Protected routes** and API endpoints
+- **User role management** (Admin access)
+- **Default credentials**: `Admin@gmail.com` / `Admin1234`
 
-### Frontend
-- **React.js** - User interface
-- **React Router** - Navigation
-- **Axios** - API communication
-- **CSS3** - Styling with responsive design
+## 🛠️ Technology Stack
 
-### Backend
-- **PHP** - REST API server
-- **SQLite** - Database storage
-- **CORS** - Cross-origin resource sharing
+### Frontend (React.js)
+- **React.js 18.2.0** with React Router for seamless navigation
+- **Axios** for robust API communication
+- **CSS Modules** with responsive design principles
+- **MediaRecorder API** for voice recording functionality
+- **Progressive Web App** features for mobile experience
 
-### Database Schema
-- Users (authentication)
-- Patients (personal information)
-- Visits (consultation records)
-- Medicines (prescriptions)
-- Lab Tests (laboratory orders)
-- Imaging Tests (X-ray, CT, MRI)
-- Vital Signs (patient vitals)
+### Backend (Node.js)
+- **Node.js** with Express.js 4.18.2 framework
+- **SQLite** database with automatic schema creation
+- **bcrypt** for secure password hashing
+- **CORS** configuration for secure cross-origin requests
+- **RESTful API** architecture with comprehensive error handling
+- **Enhanced payload handling** (50MB limit for voice files)
 
-## Installation & Setup
+### Database Architecture
+- **Users** table (authentication and user management)
+- **Patients** table (comprehensive personal and medical information)
+- **Visits** table (detailed consultation records with AI summaries)
+- **Appointments** table (advanced scheduling system)
+- **Medicines** table (prescription tracking and management)
+- **Lab Tests** table (laboratory test orders and results)
+- **Imaging Tests** table (X-ray, CT, MRI, Ultrasound records)
+- **Vital Signs** table (patient vitals for each visit)
+
+### AI & Advanced Features
+- **Natural Language Processing** for medical summary generation
+- **Voice Analysis** integration with consultation records
+- **Clinical Decision Support** with treatment recommendations
+- **Automated Medical Coding** and interpretation
+
+## 📦 Quick Installation & Setup
 
 ### Prerequisites
-- Node.js (v14 or higher)
-- PHP (v7.4 or higher)
-- Web server (Apache/Nginx) or XAMPP/WAMP
-- Modern web browser
+- **Node.js** (v14 or higher) - [Download here](https://nodejs.org/)
+- **npm** or **yarn** package manager
+- **Git** for version control
 
-### Backend Setup
+### 🚀 One-Command Setup
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/clinic-management-system.git
+cd clinic-management-system
 
-1. **Copy backend files to web server:**
-   ```bash
-   # Copy the backend folder to your web server directory
-   # For XAMPP: C:/xampp/htdocs/clinic-backend/
-   # For WAMP: C:/wamp64/www/clinic-backend/
-   ```
+# Install all dependencies (frontend + backend)
+npm run install-all
 
-2. **Ensure PHP SQLite extension is enabled:**
-   - Check that `php_sqlite3.dll` is enabled in `php.ini`
-   - Restart your web server
+# Start both frontend and backend simultaneously
+npm run dev
+```
 
-3. **Test backend API:**
-   - Open `http://localhost/clinic-backend/api/login.php` in browser
-   - You should see an error message (expected for GET request)
+### Manual Setup (Alternative)
 
-### Frontend Setup
+#### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/clinic-management-system.git
+cd clinic-management-system
+```
 
-1. **Install dependencies:**
-   ```bash
-   cd frontend
-   npm install
-   ```
+#### 2. Backend Setup (Node.js)
+```bash
+cd backend-node
+npm install
+npm start
+```
+✅ Backend server runs on `http://localhost:8000`
 
-2. **Start the development server:**
-   ```bash
-   npm start
-   ```
+#### 3. Frontend Setup (React)
+```bash
+cd frontend
+npm install
+npm start
+```
+✅ Frontend runs on `http://localhost:3000`
 
-3. **Access the application:**
+### 🎯 Quick Start Guide
+
+1. **Access the Application**
    - Open `http://localhost:3000` in your browser
+   - Login with: `Admin@gmail.com` / `Admin1234`
 
-## Default Login Credentials
-
-- **Email:** Admin@gmail.com
-- **Password:** Admin1234
+2. **Start Managing Your Clinic**
+   - Add patients → Schedule appointments → Record visits
+   - Experience AI-powered summaries and voice recording features
 
 ## API Endpoints
 

@@ -1,0 +1,49 @@
+{
+  "name": "clinic-management-system",
+  "version": "1.0.0",
+  "description": "A comprehensive clinic management system with React frontend and Node.js backend",
+  "main": "backend-node/server.js",
+  "scripts": {
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "backend": "cd backend-node && npm start",
+    "frontend": "cd frontend && npm start",
+    "install-all": "npm install && cd frontend && npm install && cd ../backend-node && npm install",
+    "build": "cd frontend && npm run build",
+    "test": "cd frontend && npm test",
+    "start": "cd backend-node && npm start"
+  },
+  "keywords": [
+    "clinic",
+    "hospital",
+    "management",
+    "patient",
+    "medical",
+    "healthcare",
+    "react",
+    "nodejs",
+    "sqlite",
+    "appointment",
+    "AI",
+    "voice-recording"
+  ],
+  "author": {
+    "name": "Ramees Raja",
+    "email": "mdv_ramees@ifza.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/clinic-management-system.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/clinic-management-system/issues"
+  },
+  "homepage": "https://github.com/yourusername/clinic-management-system#readme",
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  }
+}
