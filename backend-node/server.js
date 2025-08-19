@@ -89,10 +89,48 @@ const initDatabase = () => {
         recording_duration INTEGER,
         has_voice_recording BOOLEAN DEFAULT 0,
         voice_analysis TEXT,
+        lab_tests TEXT,
+        imaging_tests TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (patient_id) REFERENCES patients (id)
       )`, (err) => {
         if (err) console.error('Error creating visits table:', err);
+      });
+
+      // Doctors table
+      db.run(`CREATE TABLE IF NOT EXISTS doctors (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        firstName TEXT NOT NULL,
+        lastName TEXT NOT NULL,
+        fullName TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        phone TEXT NOT NULL,
+        dateOfBirth DATE,
+        gender TEXT,
+        address TEXT,
+        city TEXT,
+        state TEXT,
+        zipCode TEXT,
+        licenseNumber TEXT UNIQUE NOT NULL,
+        specialization TEXT NOT NULL,
+        experience INTEGER,
+        department TEXT NOT NULL,
+        position TEXT,
+        salary DECIMAL(10,2),
+        joinDate DATE,
+        education TEXT,
+        certifications TEXT,
+        languages TEXT,
+        availability TEXT,
+        emergencyContact TEXT,
+        emergencyPhone TEXT,
+        notes TEXT,
+        status TEXT DEFAULT 'active',
+        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+      )`, (err) => {
+        if (err) console.error('Error creating doctors table:', err);
+        else console.log('Doctors table created successfully');
       });
 
       // Medicines table
@@ -1064,6 +1102,193 @@ app.post('/api/visits', (req, res) => {
   });
 });
 
+// ==============================================
+// DOCTORS ENDPOINTS
+// ==============================================
+
+// Get all doctors
+app.get('/api/doctors', (req, res) => {
+  const sql = 'SELECT * FROM doctors ORDER BY firstName ASC, lastName ASC';
+  
+  db.all(sql, [], (err, doctors) => {
+    if (err) {
+      console.error('Error fetching doctors:', err);
+      return res.status(500).json({ error: 'Failed to fetch doctors' });
+    }
+    
+    // Parse JSON fields for each doctor
+    const doctorsWithParsedData = doctors.map(doctor => ({
+      ...doctor,
+      languages: doctor.languages ? doctor.languages.split(', ') : [],
+      availability: doctor.availability ? JSON.parse(doctor.availability) : {}
+    }));
+    
+    res.json(doctorsWithParsedData);
+  });
+});
+
+// Get doctor by ID
+app.get('/api/doctors/:id', (req, res) => {
+  const { id } = req.params;
+  
+  db.get('SELECT * FROM doctors WHERE id = ?', [id], (err, doctor) => {
+    if (err) {
+      console.error('Error fetching doctor:', err);
+      return res.status(500).json({ error: 'Failed to fetch doctor' });
+    }
+    
+    if (!doctor) {
+      return res.status(404).json({ error: 'Doctor not found' });
+    }
+    
+    // Parse JSON fields
+    const doctorWithParsedData = {
+      ...doctor,
+      languages: doctor.languages ? doctor.languages.split(', ') : [],
+      availability: doctor.availability ? JSON.parse(doctor.availability) : {}
+    };
+    
+    res.json(doctorWithParsedData);
+  });
+});
+
+// Add new doctor
+app.post('/api/doctors', (req, res) => {
+  const {
+    firstName, lastName, email, phone, dateOfBirth, gender,
+    address, city, state, zipCode, licenseNumber, specialization,
+    experience, department, position, salary, joinDate, education,
+    certifications, languages, availability, emergencyContact,
+    emergencyPhone, notes, status = 'active'
+  } = req.body;
+
+  // Validation
+  if (!firstName || !lastName || !email || !phone || !licenseNumber || !specialization || !department) {
+    return res.status(400).json({ 
+      error: 'Required fields: firstName, lastName, email, phone, licenseNumber, specialization, department' 
+    });
+  }
+
+  // Create full name
+  const fullName = `${firstName} ${lastName}`;
+
+  // Prepare data
+  const languagesString = Array.isArray(languages) ? languages.join(', ') : languages || '';
+  const availabilityString = typeof availability === 'object' ? JSON.stringify(availability) : availability || '{}';
+
+  const sql = `INSERT INTO doctors (
+    firstName, lastName, fullName, email, phone, dateOfBirth, gender,
+    address, city, state, zipCode, licenseNumber, specialization,
+    experience, department, position, salary, joinDate, education,
+    certifications, languages, availability, emergencyContact,
+    emergencyPhone, notes, status, createdAt, updatedAt
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+  const values = [
+    firstName, lastName, fullName, email, phone, dateOfBirth, gender,
+    address, city, state, zipCode, licenseNumber, specialization,
+    experience, department, position, salary, joinDate, education,
+    certifications, languagesString, availabilityString, emergencyContact,
+    emergencyPhone, notes, status, new Date().toISOString(), new Date().toISOString()
+  ];
+
+  db.run(sql, values, function(err) {
+    if (err) {
+      console.error('Error adding doctor:', err);
+      if (err.message.includes('UNIQUE constraint failed')) {
+        if (err.message.includes('email')) {
+          return res.status(400).json({ error: 'Email address already exists' });
+        }
+        if (err.message.includes('licenseNumber')) {
+          return res.status(400).json({ error: 'License number already exists' });
+        }
+      }
+      return res.status(500).json({ error: 'Failed to add doctor' });
+    }
+
+    res.status(201).json({
+      id: this.lastID,
+      fullName,
+      message: 'Doctor added successfully'
+    });
+  });
+});
+
+// Update doctor
+app.put('/api/doctors/:id', (req, res) => {
+  const { id } = req.params;
+  const {
+    firstName, lastName, email, phone, dateOfBirth, gender,
+    address, city, state, zipCode, licenseNumber, specialization,
+    experience, department, position, salary, joinDate, education,
+    certifications, languages, availability, emergencyContact,
+    emergencyPhone, notes, status
+  } = req.body;
+
+  // Create full name
+  const fullName = `${firstName} ${lastName}`;
+
+  // Prepare data
+  const languagesString = Array.isArray(languages) ? languages.join(', ') : languages || '';
+  const availabilityString = typeof availability === 'object' ? JSON.stringify(availability) : availability || '{}';
+
+  const sql = `UPDATE doctors SET
+    firstName = ?, lastName = ?, fullName = ?, email = ?, phone = ?, dateOfBirth = ?, gender = ?,
+    address = ?, city = ?, state = ?, zipCode = ?, licenseNumber = ?, specialization = ?,
+    experience = ?, department = ?, position = ?, salary = ?, joinDate = ?, education = ?,
+    certifications = ?, languages = ?, availability = ?, emergencyContact = ?,
+    emergencyPhone = ?, notes = ?, status = ?, updatedAt = ?
+    WHERE id = ?`;
+
+  const values = [
+    firstName, lastName, fullName, email, phone, dateOfBirth, gender,
+    address, city, state, zipCode, licenseNumber, specialization,
+    experience, department, position, salary, joinDate, education,
+    certifications, languagesString, availabilityString, emergencyContact,
+    emergencyPhone, notes, status, new Date().toISOString(), id
+  ];
+
+  db.run(sql, values, function(err) {
+    if (err) {
+      console.error('Error updating doctor:', err);
+      if (err.message.includes('UNIQUE constraint failed')) {
+        if (err.message.includes('email')) {
+          return res.status(400).json({ error: 'Email address already exists' });
+        }
+        if (err.message.includes('licenseNumber')) {
+          return res.status(400).json({ error: 'License number already exists' });
+        }
+      }
+      return res.status(500).json({ error: 'Failed to update doctor' });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Doctor not found' });
+    }
+
+    res.json({ message: 'Doctor updated successfully' });
+  });
+});
+
+// Delete doctor
+app.delete('/api/doctors/:id', (req, res) => {
+  const { id } = req.params;
+
+  db.run('DELETE FROM doctors WHERE id = ?', [id], function(err) {
+    if (err) {
+      console.error('Error deleting doctor:', err);
+      return res.status(500).json({ error: 'Failed to delete doctor' });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Doctor not found' });
+    }
+
+    res.json({ message: 'Doctor deleted successfully' });
+  });
+});
+
+// ==============================================
 // Legacy visits endpoints for backward compatibility
 // Visits endpoints
 app.get('/api/visits.php', (req, res) => {
@@ -1434,6 +1659,218 @@ app.delete('/api/appointments/:id', (req, res) => {
     }
     res.json({ success: true, message: 'Appointment cancelled successfully' });
   });
+});
+
+// Lab Tests REST API endpoints
+
+// GET lab tests - retrieve all lab tests from visits
+app.get('/api/lab-tests', (req, res) => {
+  const sql = `
+    SELECT 
+      v.id as visit_id,
+      v.patient_id,
+      v.visit_date,
+      v.lab_tests,
+      v.imaging_tests,
+      p.first_name,
+      p.last_name,
+      p.phone,
+      p.email
+    FROM visits v
+    LEFT JOIN patients p ON v.patient_id = p.id
+    WHERE (v.lab_tests IS NOT NULL AND v.lab_tests != '' AND v.lab_tests != '[]') 
+       OR (v.imaging_tests IS NOT NULL AND v.imaging_tests != '' AND v.imaging_tests != '[]')
+    ORDER BY v.visit_date DESC
+  `;
+  
+  db.all(sql, [], (err, visits) => {
+    if (err) {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Database error: ' + err.message 
+      });
+    }
+    
+    const labTests = [];
+    
+    visits.forEach(visit => {
+      const patientName = `${visit.first_name || ''} ${visit.last_name || ''}`.trim();
+      
+      // Process lab tests
+      if (visit.lab_tests) {
+        try {
+          const labTestsData = JSON.parse(visit.lab_tests);
+          if (Array.isArray(labTestsData)) {
+            labTestsData.forEach((test, index) => {
+              if (test.test_name) {
+                labTests.push({
+                  id: `${visit.visit_id}_lab_${index}`,
+                  visit_id: visit.visit_id,
+                  patient_id: visit.patient_id,
+                  patient_name: patientName,
+                  patient_phone: visit.phone,
+                  patient_email: visit.email,
+                  test_name: test.test_name,
+                  test_type: 'lab',
+                  status: test.status || 'pending',
+                  order_date: visit.visit_date,
+                  results: test.results || '',
+                  notes: test.notes || '',
+                  normal_range: test.normal_range || '',
+                  priority: test.priority || 'normal',
+                  technician: test.technician || '',
+                  report_date: test.report_date || null
+                });
+              }
+            });
+          }
+        } catch (e) {
+          console.error('Error parsing lab_tests JSON:', e);
+        }
+      }
+      
+      // Process imaging tests
+      if (visit.imaging_tests) {
+        try {
+          const imagingTestsData = JSON.parse(visit.imaging_tests);
+          if (Array.isArray(imagingTestsData)) {
+            imagingTestsData.forEach((test, index) => {
+              if (test.test_name) {
+                labTests.push({
+                  id: `${visit.visit_id}_imaging_${index}`,
+                  visit_id: visit.visit_id,
+                  patient_id: visit.patient_id,
+                  patient_name: patientName,
+                  patient_phone: visit.phone,
+                  patient_email: visit.email,
+                  test_name: test.test_name,
+                  test_type: 'imaging',
+                  status: test.status || 'pending',
+                  order_date: visit.visit_date,
+                  results: test.results || '',
+                  notes: test.notes || '',
+                  normal_range: test.normal_range || '',
+                  priority: test.priority || 'normal',
+                  technician: test.technician || '',
+                  report_date: test.report_date || null
+                });
+              }
+            });
+          }
+        } catch (e) {
+          console.error('Error parsing imaging_tests JSON:', e);
+        }
+      }
+    });
+    
+    // Sort by order date (newest first)
+    labTests.sort((a, b) => new Date(b.order_date) - new Date(a.order_date));
+    
+    res.json({
+      success: true,
+      data: labTests,
+      total: labTests.length,
+      timestamp: new Date().toISOString()
+    });
+  });
+});
+
+// GET lab tests with .php extension for compatibility
+app.get('/api/lab-tests.php', (req, res) => {
+  // Redirect to the main lab-tests endpoint
+  req.url = '/api/lab-tests';
+  app.handle(req, res);
+});
+
+// PUT lab tests - update test status and results
+app.put('/api/lab-tests', (req, res) => {
+  const { test_id, status, results, notes } = req.body;
+  
+  if (!test_id || !status) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Missing required fields: test_id and status' 
+    });
+  }
+  
+  // Parse test ID to get visit ID and test index
+  const parts = test_id.split('_');
+  if (parts.length < 3) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Invalid test ID format' 
+    });
+  }
+  
+  const visitId = parts[0];
+  const testType = parts[1]; // 'lab' or 'imaging'
+  const testIndex = parseInt(parts[2]);
+  
+  // Get current visit data
+  const sql = 'SELECT * FROM visits WHERE id = ?';
+  db.get(sql, [visitId], (err, visit) => {
+    if (err) {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Database error: ' + err.message 
+      });
+    }
+    
+    if (!visit) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Visit not found' 
+      });
+    }
+    
+    // Update the appropriate test array
+    const fieldName = testType === 'lab' ? 'lab_tests' : 'imaging_tests';
+    let testsData = [];
+    
+    try {
+      testsData = JSON.parse(visit[fieldName] || '[]');
+    } catch (e) {
+      testsData = [];
+    }
+    
+    if (!testsData[testIndex]) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Test not found' 
+      });
+    }
+    
+    // Update test data
+    testsData[testIndex].status = status;
+    testsData[testIndex].results = results || '';
+    testsData[testIndex].notes = notes || '';
+    testsData[testIndex].report_date = status === 'completed' ? new Date().toISOString().split('T')[0] : null;
+    
+    // Update visit in database
+    const updateSql = `UPDATE visits SET ${fieldName} = ? WHERE id = ?`;
+    db.run(updateSql, [JSON.stringify(testsData), visitId], function(err) {
+      if (err) {
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Failed to update test: ' + err.message 
+        });
+      }
+      
+      res.json({
+        success: true,
+        message: 'Test updated successfully',
+        test_id: test_id,
+        status: status
+      });
+    });
+  });
+});
+
+// PUT lab tests with .php extension for compatibility
+app.put('/api/lab-tests.php', (req, res) => {
+  // Redirect to the main lab-tests endpoint
+  req.url = '/api/lab-tests';
+  app.handle(req, res);
 });
 
 // Start server
